@@ -2,7 +2,7 @@ from flask import Blueprint
 from core import db
 from core.apis import decorators
 from core.apis.responses import APIResponse
-from core.models.assignments import Assignment
+from core.models.assignments import Assignment,AssignmentStateEnum
 
 from .schema import AssignmentSchema, AssignmentSubmitSchema
 student_assignments_resources = Blueprint('student_assignments_resources', __name__)
@@ -22,6 +22,15 @@ def list_assignments(p):
 @decorators.authenticate_principal
 def upsert_assignment(p, incoming_payload):
     """Create or Edit an assignment"""
+    if not incoming_payload.get('content'):
+        return APIResponse.respond("content cannot be empty"), 400
+
+    assignment_id = incoming_payload.get('id')
+    if assignment_id:
+        assignment = Assignment.get_by_id(assignment_id)
+        if assignment and assignment.state in [AssignmentStateEnum.SUBMITTED, AssignmentStateEnum.GRADED]:
+                return APIResponse.respond_with_error('Submitted or graded assignments cannot be edited', status_code=400)
+
     assignment = AssignmentSchema().load(incoming_payload)
     assignment.student_id = p.student_id
 
@@ -36,7 +45,15 @@ def upsert_assignment(p, incoming_payload):
 @decorators.authenticate_principal
 def submit_assignment(p, incoming_payload):
     """Submit an assignment"""
+
     submit_assignment_payload = AssignmentSubmitSchema().load(incoming_payload)
+    assignment = Assignment.get_by_id(submit_assignment_payload.id)
+    if not assignment:
+        return APIResponse.respond_with_error(message="Assignment does not exist")
+
+    if assignment.state != AssignmentStateEnum.DRAFT:
+        return APIResponse.respond_with_error(message='only a draft assignment can be submitted')
+
 
     submitted_assignment = Assignment.submit(
         _id=submit_assignment_payload.id,
