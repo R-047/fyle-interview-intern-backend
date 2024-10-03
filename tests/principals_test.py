@@ -29,6 +29,20 @@ def test_grade_assignment_draft_assignment(client, h_principal):
 
     assert response.status_code == 400
 
+def test_regrade_assignment_not_graded(client, h_principal):
+    """
+    failure case: If an assignment is not graded by any teacher, it cannot be graded by principal
+    """
+    response = client.post(
+            '/principal/assignments/grade',
+            json={
+                'id': 5,
+                'grade': GradeEnum.A.value
+            },
+            headers=h_principal
+        )
+
+    assert response.status_code == 400
 
 def test_grade_assignment(client, h_principal):
     response = client.post(
