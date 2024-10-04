@@ -1,0 +1,5 @@
+services:
+  classroom-service:
+    build: .
+    ports:
+      - "7755:7755"
