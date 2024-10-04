@@ -1,6 +1,5 @@
 from core import db
 from core.models.users import User
-from core.models.principals import Principal
 
 
 def create_user(email, user_name):
