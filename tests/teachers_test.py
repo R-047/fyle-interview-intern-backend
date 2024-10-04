@@ -106,14 +106,14 @@ def test_grade_assignment(client, h_teacher_1):
         '/teacher/assignments/grade',
         headers=h_teacher_1
         , json={
-            "id": 2,
+            "id": 1,
             "grade": "B"
         }
     )
-
     assert response.status_code == 200
 
     data = response.json['data']
     assert data['teacher_id'] == 1
     assert data['grade'] == "B"
+
 

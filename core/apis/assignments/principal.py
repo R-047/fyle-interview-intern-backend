@@ -11,7 +11,7 @@ principal_assignments_resources = Blueprint('principal_assignments_resources', _
 @principal_assignments_resources.route('/assignments', methods=['GET'], strict_slashes=False)
 @decorators.authenticate_principal
 def list_graded_assignments(p):
-    """Returns list of assignments"""
+    """Returns list of graded assignments"""
     graded_assignments = Assignment.get_graded_assignements()
     graded_assignments_dump = AssignmentSchema().dump(graded_assignments, many=True)
     return APIResponse.respond(data=graded_assignments_dump)
@@ -23,13 +23,6 @@ def list_graded_assignments(p):
 def grade_assignment(p, incoming_payload):
     """Grade an assignment"""
     grade_assignment_payload = AssignmentGradeSchema().load(incoming_payload)
-
-    assignment = Assignment.get_by_id(grade_assignment_payload.id)
-    if not assignment:
-            return APIResponse.respond("Assignment not found"), 401
-        
-    if assignment.state != AssignmentStateEnum.GRADED:
-        return APIResponse.respond('Assignment not graded by a teacher yet'), 400
 
     graded_assignment = Assignment.mark_grade(
         _id=grade_assignment_payload.id,
